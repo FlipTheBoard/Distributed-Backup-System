@@ -1,0 +1,26 @@
+# Debug = 0
+# Info  = 1
+# Warn  = 2
+# Error = 3
+logging_level: 0
+listen_addr: "0.0.0.0:9876"
+backups_dir: "/root/backups"
+
+# {dir} -> backups_dir e.g. "/root/backups"
+# {ts}  -> timestamp   e.g. "1701020822"
+# {dt}  -> datetime    e.g. "2023-11-26_22:47:02"
+# {name} -> backup name
+
+# interval: “ns”, “us” (or “µs”), “ms”, “s”, “m”, “h”
+
+# backups:
+#   backup_docs:
+#     interval: 1h
+#     commands:
+#       - "pgdump -U postgres > {dir}/{name}_{ts}_{dt}.txt"
+
+backups:
+  backup_odoo:
+    interval: 5s
+    commands: 
+      - "touch {dir}/{name}_{dt}.txt"
