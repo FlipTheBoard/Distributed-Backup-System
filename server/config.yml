@@ -4,7 +4,7 @@
 # Error = 3
 logging_level: 0
 listen_addr: "0.0.0.0:9876"
-backups_dir: "/root/backups"
+backups_dir: "/root/backups/"
 
 # {dir} -> backups_dir e.g. "/root/backups"
 # {ts}  -> timestamp   e.g. "1701020822"
@@ -14,13 +14,45 @@ backups_dir: "/root/backups"
 # interval: “ns”, “us” (or “µs”), “ms”, “s”, “m”, “h”
 
 # backups:
-#   backup_docs:
+#   backup_docs_monthly:
+#     subdir: "/docs/monthly"
+#     files_limit: 6
+#     interval: 720h
+#     commands:
+#       - "pgdump -U postgres > {dir}/{name}_{ts}_{dt}.txt"
+#
+#   backup_docs_daily:
+#     subdir: "/docs/daily"
+#     files_limit: 30
+#     interval: 24h
+#     commands:
+#       - "pgdump -U postgres > {dir}/{name}_{ts}_{dt}.txt"
+#
+#   backup_docs_hourly:
+#     subdir: "/docs/hourly"
+#     files_limit: 24
 #     interval: 1h
 #     commands:
 #       - "pgdump -U postgres > {dir}/{name}_{ts}_{dt}.txt"
 
 backups:
-  backup_odoo:
-    interval: 5s
+  odoo_monthly:
+    subdir: "/odoo/monthly"
+    files_limit: 6
+    interval: 720h
     commands: 
-      - "touch {dir}/{name}_{dt}.txt"
+      - "touch {dir}/{dt}_{name}_dump.sql"
+    
+  odoo_daily:
+    subdir: "/odoo/daily"
+    files_limit: 30
+    interval: 24h
+    commands: 
+      - "touch {dir}/{dt}_{name}_dump.sql"
+
+  odoo_hourly:
+    subdir: "/odoo/hourly"
+    files_limit: 24
+    interval: 1h
+    commands: 
+      - "touch {dir}/{dt}_{name}_dump.sql"

@@ -11,15 +11,17 @@ import (
 )
 
 type Config struct {
+	LoggingLevel zerolog.Level      `mapstructure:"logging_level"`
 	ListenAddr   string             `mapstructure:"listen_addr"`
 	BackupsDir   string             `mapstructure:"backups_dir"`
 	Backups      map[string]*Backup `mapstructure:"backups"`
-	LoggingLevel zerolog.Level      `mapstructure:"logging_level"`
 }
 
 type Backup struct {
-	Interval time.Duration `mapstructure:"interval"`
-	Commands []string      `mapstructure:"commands"`
+	Interval   time.Duration `mapstructure:"interval"`
+	Commands   []string      `mapstructure:"commands"`
+	Subdir     string        `mapstructure:"subdir"`
+	FilesLimit int           `mapstructure:"files_limit"`
 }
 
 func ParseConfig() (*Config, error) {

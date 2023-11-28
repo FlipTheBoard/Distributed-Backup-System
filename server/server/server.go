@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"os/exec"
 	"os/signal"
 
 	"github.com/gorilla/mux"
@@ -17,6 +18,40 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "Привет. Это главная страница")
 }
 
+func GetBackupFiles(ctx context.Context, config *config.Config) http.HandlerFunc {
+	cmd := fmt.Sprintf(
+		"(cd %s && find . -type f | cut -c 2- | sort)",
+		config.BackupsDir,
+	)
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		stdout, err := exec.Command("/bin/bash", "-c", cmd).Output()
+		if err != nil {
+			fmt.Fprintf(w, "err: %v", err)
+		} else {
+			fmt.Fprint(w, string(stdout))
+		}
+
+	}
+}
+
+func GetBackupDirs(ctx context.Context, config *config.Config) http.HandlerFunc {
+	cmd := fmt.Sprintf(
+		"(cd %s && find . -type d | cut -c 2- | sort | tail -n +2)",
+		config.BackupsDir,
+	)
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		stdout, err := exec.Command("/bin/bash", "-c", cmd).Output()
+		if err != nil {
+			fmt.Fprintf(w, "err: %v", err)
+		} else {
+			fmt.Fprint(w, string(stdout))
+		}
+
+	}
+}
+
 func Run(ctx context.Context, config *config.Config) error {
 	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
 	defer cancel()
@@ -24,10 +59,12 @@ func Run(ctx context.Context, config *config.Config) error {
 	log := zlog.Ctx(ctx)
 
 	router := mux.NewRouter()
-	handler := http.StripPrefix("/files/", http.FileServer(http.Dir(config.BackupsDir)))
+	handler := http.StripPrefix("/backups/", http.FileServer(http.Dir(config.BackupsDir)))
 
 	router.HandleFunc("/", Index)
-	router.PathPrefix("/files/").Handler(handler)
+	router.HandleFunc("/files/", GetBackupFiles(ctx, config))
+	router.HandleFunc("/dirs/", GetBackupDirs(ctx, config))
+	router.PathPrefix("/backups/").Handler(handler)
 
 	server := &http.Server{Addr: config.ListenAddr, Handler: router}
 

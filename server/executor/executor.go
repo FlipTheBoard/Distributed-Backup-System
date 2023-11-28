@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os/exec"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -17,7 +18,7 @@ var cmdMutex sync.Mutex
 
 func Run(ctx context.Context, config *config.Config) error {
 	for name, backup := range config.Backups {
-		go startBackupRunner(ctx, name, *backup, config.BackupsDir)
+		go startBackupRunner(ctx, name, *backup, config.BackupsDir+backup.Subdir)
 	}
 	return nil
 }
@@ -43,15 +44,49 @@ func startBackupRunner(ctx context.Context, name string, backup config.Backup, d
 			stdout, err := exec.Command("/bin/bash", "-c", cmd).Output()
 			if err != nil {
 				log.Err(err).Send()
+				continue
 			} else {
 				log.Debug().
 					Bytes("stdout", stdout).
 					Msg("success")
 			}
 		}
+		deleteOldBackups(dir, backup.FilesLimit)
 
 		cmdMutex.Unlock()
 	}
+}
+
+func deleteOldBackups(dir string, limit int) error {
+	stdout, err := exec.Command("/bin/bash", "-c", fmt.Sprintf("(cd %s && ls | wc -l | tr -d '\n')", dir)).Output()
+	if err != nil {
+		return err
+	}
+
+	count, err := strconv.Atoi(string(stdout))
+	if err != nil {
+		return err
+	}
+
+	if count <= limit {
+		return nil
+	}
+
+	cmd := fmt.Sprintf("(cd %s && ls -d \"$PWD/\"* | less | head -n %d)", dir, count-limit)
+	stdout, err = exec.Command("/bin/bash", "-c", cmd).Output()
+	if err != nil {
+		return err
+	}
+
+	files := strings.Split(string(stdout), "\n")
+
+	cmd = fmt.Sprintf("rm %s", strings.Join(files, " "))
+	_, err = exec.Command("/bin/bash", "-c", cmd).Output()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func formatCommand(cmd string, dir string, name string) string {
