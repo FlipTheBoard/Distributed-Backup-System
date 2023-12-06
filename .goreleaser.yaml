@@ -38,11 +38,11 @@ archives:
     meta: true
     name_template: "{{ .ProjectName }}_{{ .Version }}_buildable-artifact"
     files:
-      - src: readme.md
+      - src: ../readme.md
         dst: ./readme.md
-      - src: backup-sync.service
+      - src: ../backup-sync.service
         dst: ./backup-sync.service
-      - src: ./client
+      - src: ./
         dst: ./
 
 changelog:
