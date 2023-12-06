@@ -1,5 +1,5 @@
 [Unit]
-Description=FTB Backup Client
+Description=Backup Sync Client
 
 Wants=network.target
 After=syslog.target network-online.target
