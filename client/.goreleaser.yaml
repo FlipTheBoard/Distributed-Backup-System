@@ -33,17 +33,7 @@ archives:
       {{- else if eq .Arch "386" }}i386
       {{- else }}{{ .Arch }}{{ end }}
       {{- if .Arm }}v{{ .Arm }}{{ end }}
-
-  - id: source
-    meta: true
-    name_template: "{{ .ProjectName }}_{{ .Version }}_buildable-artifact"
-    files:
-      - src: ../readme.md
-        dst: ./readme.md
-      - src: ../backup-sync.service
-        dst: ./backup-sync.service
-      - src: ./
-        dst: ./
+    files: [ backup-sync.service ]
 
 changelog:
   sort: asc
