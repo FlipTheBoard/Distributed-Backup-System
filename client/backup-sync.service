@@ -10,7 +10,7 @@ ExecStart=/***
 Restart=on-failure
 RestartSec=100
 KillMode=process
-Environment=FTB_BACKUP_DIR=/***
+Environment=FTB_BACKUP_DIR=/****
 Environment=FTB_SERVER_ADDR=http://0.0.0.0:9876
 
 [Install]
