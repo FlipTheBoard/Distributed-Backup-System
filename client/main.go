@@ -3,20 +3,25 @@ package main
 import (
 	"context"
 	"log"
+	"os"
 
 	"github.com/FlipTheBoard/Distributed-Backup-System/client/client"
-	"github.com/FlipTheBoard/Distributed-Backup-System/client/config"
 )
 
 func main() {
 	ctx := context.Background()
 
-	cfg, err := config.ParseConfig()
-	if err != nil {
-		log.Fatal(err)
+	backupDir, ok := os.LookupEnv("FTB_BACKUP_DIR")
+	if !ok {
+		log.Fatal("failed to get env variable FTB_BACKUP_DIR")
 	}
 
-	if err = client.Run(ctx, cfg); err != nil {
+	serverAddr, ok := os.LookupEnv("FTB_SERVER_ADDR")
+	if !ok {
+		log.Fatal("failed to get env variable FTB_SERVER_ADDR")
+	}
+
+	if err := client.Run(ctx, backupDir, serverAddr); err != nil {
 		log.Fatal(err)
 	}
 }

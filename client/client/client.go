@@ -9,23 +9,21 @@ import (
 	"os/exec"
 	"strings"
 	"time"
-
-	"github.com/FlipTheBoard/Distributed-Backup-System/client/config"
 )
 
-func Run(ctx context.Context, config *config.Config) error {
-	if err := createDirs(config); err != nil {
+func Run(ctx context.Context, backupDir string, serverAddr string) error {
+	if err := createDirs(backupDir, serverAddr); err != nil {
 		return err
 	}
 
 	t := time.NewTicker(time.Hour)
 
 	for ; true; <-t.C {
-		serverBackups, err := getData(config.ServerAddr + "/files/")
+		serverBackups, err := getData(serverAddr + "/files/")
 		if err != nil {
 			return err
 		}
-		clientBackups, err := getCurrentBackups(config.BackupsDir)
+		clientBackups, err := getCurrentBackups(backupDir)
 		if err != nil {
 			return err
 		}
@@ -33,11 +31,11 @@ func Run(ctx context.Context, config *config.Config) error {
 		backupsToDelete := diff(clientBackups, serverBackups)
 
 		for _, backup := range backupsToDownload {
-			if err = downloadFile(config.BackupsDir+backup, config.ServerAddr+"/backups"+backup); err != nil {
+			if err = downloadFile(backupDir+backup, serverAddr+"/backups"+backup); err != nil {
 				return err
 			}
 		}
-		if err := deleteFiles(backupsToDelete, config.BackupsDir); err != nil {
+		if err := deleteFiles(backupsToDelete, backupDir); err != nil {
 			return err
 		}
 	}
@@ -45,14 +43,14 @@ func Run(ctx context.Context, config *config.Config) error {
 	return nil
 }
 
-func createDirs(config *config.Config) error {
-	dirs, err := getData(config.ServerAddr + "/dirs/")
+func createDirs(backupDir string, serverAddr string) error {
+	dirs, err := getData(serverAddr + "/dirs/")
 	if err != nil {
 		return err
 	}
 
 	for _, dir := range dirs {
-		_, err := exec.Command("/bin/bash", "-c", fmt.Sprintf("mkdir -p %s%s", config.BackupsDir, dir)).Output()
+		_, err := exec.Command("/bin/bash", "-c", fmt.Sprintf("mkdir -p %s%s", backupDir, dir)).Output()
 		if err != nil {
 			return err
 		}
